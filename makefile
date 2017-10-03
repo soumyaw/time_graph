@@ -1,12 +1,11 @@
 ######
-# Authors: Christos Faloutsos, Soumya Wadha
+# Authors: Christos Faloutsos, Soumya Wadhwa
 # Date: Sept-Oct. 2017
 # Goal: analysis for time-evolving graphs
 ######
 
 top:
-	python hello.py
-
+	python run_global.py
 
 clean:
 	\rm -f *.pyc

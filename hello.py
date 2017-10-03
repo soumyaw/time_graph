@@ -4,4 +4,4 @@
 # Goal: test for makefile
 ######
 
-print "\n ****** \n HELLO world of time-evolving graphs! \n ****"
+print "\n **** \n HELLO world of time-evolving graphs! \n ****"
