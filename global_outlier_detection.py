@@ -1,10 +1,7 @@
-from sklearn.ensemble import IsolationForest
-import make_networkx_graph as mk_graph
 from networkx.algorithms import approximation
 import operator
 import networkx as nx
-
-clf = IsolationForest()
+import numpy as np
 
 def get_num_nodes(G):
 	return nx.classes.function.number_of_nodes(G)
@@ -12,19 +9,43 @@ def get_num_nodes(G):
 def get_num_edges(G):
 	return nx.classes.function.number_of_edges(G)
 
+def get_min_max_degree(G):
+	degrees = sorted(G.degree().values())
+	return [degrees[0], degrees[-1]]
+
 def get_gcc_size_and_cc_num(G):
 	gcc = sorted(nx.connected_component_subgraphs(G), key = len, reverse=True)
 	G0 = gcc[0]
-	return (len(G0), len(gcc))
+	return [len(G0), len(gcc)]
+
+def get_core_num(G):
+	G = nx.Graph(G)
+	G.remove_edges_from(G.selfloop_edges())
+	core_num = sorted(nx.algorithms.core.core_number(G).items(), key=operator.itemgetter(1), reverse=True)
+	return core_num[0][1]
+
+def jaccard_similarity_nodes(A, B):
+	return float(len(set(A.nodes())&set(B.nodes())))/len(set(A.nodes())|set(B.nodes()))
+
+def jaccard_similarity_edges(A, B):
+	return float(len(set(A.edges())&set(B.edges())))/len(set(A.edges())|set(B.edges()))
+
+def get_first_k_eig_val_adj(G, k):
+	eig_val_adj = nx.linalg.spectrum.adjacency_spectrum(G)
+	ret = [eig.real for eig in eig_val_adj]
+	while len(ret) < k:
+		ret.append(0.0)	
+	return sorted(ret, reverse=True)[:k]
+	
+def get_first_k_eig_val_lap(G, k):
+	eig_val_lap = nx.linalg.spectrum.laplacian_spectrum(G)
+	ret = [eig.real for eig in eig_val_lap]
+	while len(ret) < k:
+		ret.append(0.0)	
+	return sorted(ret, reverse=True)[:k]
 
 def get_avg_clustering_coeff_approx(G):
-	return approximation.clustering_coefficient.average_clustering(G)	
-
-def get_first_eig_val_adj(G):
-	return nx.linalg.spectrum.adjacency_spectrum(G)[0]
-	
-def get_first_eig_val_lap(G):
-	return nx.linalg.spectrum.laplacian_spectrum(G)[0]
+	return approximation.clustering_coefficient.average_clustering(G)
 
 def get_pairwise_dist_tiles(G):
 	path_lens = nx.algorithms.shortest_paths.weighted.all_pairs_dijkstra_path_length(G)
@@ -36,37 +57,30 @@ def get_pairwise_dist_tiles(G):
 	length = len(sorted_lens)
 	return [sorted_lens[i*length/10][1] for i in range(1, 10)]
 
-def inp_vectors(G):
+def inp_vectors(G, G_prev):
+	result = []
 	num_nodes = get_num_nodes(G)
+	result.append(num_nodes)
 	num_edges = get_num_edges(G)
+	result.append(num_edges)
+	extr_degree = get_min_max_degree(G)
+	result.extend(extr_degree)
+	avg_degree = num_edges*2/float(num_nodes)
+	result.append(avg_degree)
 	gcc_size_and_cc_num = get_gcc_size_and_cc_num(G)
-	gcc_size = gcc_size_and_cc_num[0]
-	cc_num = gcc_size_and_cc_num[1]
+	result.extend(gcc_size_and_cc_num)
+	core_num = get_core_num(G)
+	result.append(core_num)
+	jac_sim_nodes = jaccard_similarity_nodes(G, G_prev)
+	result.append(jac_sim_nodes)
+	jac_sim_edges = jaccard_similarity_edges(G, G_prev)
+	result.append(jac_sim_edges)
 	clus_coeff = get_avg_clustering_coeff_approx(G)
-	first_eig_adj = get_first_eig_val_adj(G)
-	first_eig_lap = get_first_eig_val_lap(G)
+	result.append(clus_coeff)
+	first_eig_adj = get_first_k_eig_val_adj(G, 4)
+	result.extend(first_eig_adj)
+	first_eig_lap = get_first_k_eig_val_lap(G, 4)
+	result.extend(first_eig_lap)
 	pw_dist = get_pairwise_dist_tiles(G)
-	ten_pw_dist = pw_dist[0]
-	ninety_pw_dist = pw_dist[8]
-	return [num_nodes, num_edges, gcc_size, cc_num, clus_coeff, first_eig_lap, ten_pw_dist, ninety_pw_dist]
-
-def main():
-	file_name = "data/sx-mathoverflow.txt"
-	granularity = "monthly"
-	edges = mk_graph.get_edges(file_name, granularity)
-	time_keys = edges.keys()
-	time_keys.sort()
-	X = []
-	edges_union = []
-	for key in time_keys:
-		edge_curr = edges[key]
-		edges_union.extend(edge_curr)
-		graph = nx.Graph(edges_union)
-		X.append(inp_vectors(graph))
-		print X[-1]
-	clf.fit(X)
-	y_pred = clf.predict(X)
-	print y_pred
-
-if __name__ == "__main__":
-	main()
+	result.extend(pw_dist)
+	return result

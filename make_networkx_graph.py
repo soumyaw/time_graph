@@ -18,7 +18,7 @@ def get_edges(file_name, granularity = 'daily'):
     edges = {}
     for row in f:
         row = row.strip().split()
-        time = int(row[2])/time_unit
+        time = int(float(row[2]))/time_unit
         if time not in edges:
             edges[time] = []
         edges[time].append((row[0], row[1]))   
