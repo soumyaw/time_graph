@@ -6,7 +6,8 @@
 
 top:
 	python run_global.py
-
+	python isolation_forest.py
+	python local_discont.py
 clean:
 	\rm -f *.pyc
 

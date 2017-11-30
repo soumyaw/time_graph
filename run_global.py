@@ -7,7 +7,7 @@
 import global_outlier_detection as glb_measure
 import global_plot as glb_plt
 
-time_gran = 'weekly'
+time_gran = 'daily'
 
 glb_plt.lag_plot_measure(glb_measure.get_num_nodes, "num_nodes", file_name="data/enron_unix.txt", granularity=time_gran)
 

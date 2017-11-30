@@ -36,10 +36,10 @@ def plot_measure(func, measure_name, num=None, file_name=None, time_keys=None, e
 		else:
 			val = func(graph)
 		measure[key] = val
-		print val
+		# print val
 		measure_vals.append(val)
 	plt.plot(time_keys, measure_vals)
-	plt.savefig(measure_name+"_"+granularity+".png")
+	plt.savefig("results/"+measure_name+"_"+granularity+".png")
 	plt.clf()
 	return time_keys, measure
 
@@ -70,11 +70,11 @@ def lag_plot_measure(func, measure_name, num=None, file_name=None, time_keys=Non
 	ymin = y.min()
 	ymax = y.max()
 	extent = [xmin, xmax, ymin, ymax]
-	plt.hexbin(x, y, gridsize=100, cmap='YlOrRd', extent=extent)
-	plt.savefig(measure_name+"_"+granularity+"_lag.png")
-	plt.clf()
+	#plt.hexbin(x, y, gridsize=100, cmap='YlOrRd', extent=extent)
+	#plt.savefig(measure_name+"_"+granularity+"_lag.png")
+	#plt.clf()
 	plt.hexbin(x, y, gridsize=100, bins='log', cmap='YlOrRd', extent=extent)
-	plt.savefig(measure_name+"_"+granularity+"_log_lag.png")
+	plt.savefig("results/"+measure_name+"_"+granularity+"_log_lag.png")
 	plt.clf()
 
 # lag_plot_measure(nx.classes.function.number_of_nodes, "num_nodes", "data/sx-mathoverflow.txt")

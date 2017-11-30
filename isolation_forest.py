@@ -15,13 +15,13 @@ NUM_DAYS_YEAR = 365
 
 def main():
 	file_name = "data/enron_unix.txt"
-	granularity = "weekly"
-	n = 10
+	granularity = "daily"
+	n = 20
 	edges = mk_graph.get_edges(file_name, granularity)
 	time_keys = edges.keys()
 	time_keys.sort()
-	print time_keys
-	print len(time_keys)
+	# print time_keys
+	# print len(time_keys)
 	if granularity == 'daily':
 		time_unit = ONE_DAY
 	elif granularity == 'weekly':
@@ -42,16 +42,20 @@ def main():
 		graph_prev = graph
 	clf.fit(X)
 	y_pred = clf.decision_function(X)
+	plt.plot(time_keys, -y_pred)
+	plt.savefig('results/time_vs_neg_score_'+granularity+'.png')
+	plt.close()
 	combined = sorted(zip(time_keys, y_pred, X), key=operator.itemgetter(1))
 	len_proc = len(X)
+	print "The top "+str(n)+" anomalies based on global outlier detection:"
 	for i in range(n):
-		print datetime.datetime.utcfromtimestamp(int(combined[i][0])*time_unit).strftime('%Y-%m-%d %H:%M:%S')
+		print datetime.datetime.utcfromtimestamp(int(combined[i][0])*time_unit).strftime('%Y-%m-%d')
 		print combined[i][1]
 		print combined[i][2]
 		print '...'
 	y_pred_sorted = [comb[1] for comb in combined]
 	plt.plot(range(len_proc), y_pred_sorted)
-	plt.savefig('rank_vs_score_'+granularity+'.png')
+	plt.savefig('results/rank_vs_score_'+granularity+'.png')
 
 if __name__ == "__main__":
 	main()
